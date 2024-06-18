@@ -1,6 +1,7 @@
 import time
 import pandas as pd
 import customtkinter as ctk
+from threading import Thread
 
 
 class Automation:
@@ -9,7 +10,7 @@ class Automation:
 
         self.main_content = self.root.main_content
         self.appearance_manager = self.root.appearance_manager
-        self.dataframe = ""
+        self.dataframe = None
 
         self.interface()
 
@@ -44,7 +45,6 @@ class Automation:
             hover=False,
             anchor="nw",
         )
-
         painel_1.grid(row=1, column=0, sticky="nsew", padx=10, pady=(45, 5))
 
         self.bt_search_database = ctk.CTkButton(
@@ -68,7 +68,7 @@ class Automation:
             fg_color="#006837",
             hover_color="#033B21",
             anchor="center",
-            command=self.start,
+            command=self.start_thread,
         )
         self.bt_play.place(x=10, y=100)
 
@@ -78,13 +78,26 @@ class Automation:
             text_color=("black", "white"),
             font=self.appearance_manager.get_font_title(),
             width=900,
-            height=100,
+            height=200,
             border_width=1,
             fg_color="transparent",
             hover=False,
             anchor="nw",
         )
         painel_2.grid(row=2, column=0, sticky="nsew", padx=10, pady=(45, 5))
+
+        self.progress_bar = ctk.CTkProgressBar(
+            painel_2, width=700, height=20, corner_radius=10
+        )
+        self.progress_bar.place(x=50, y=50)
+        self.progress_bar.set(0)
+
+        self.status_label = ctk.CTkLabel(
+            painel_2,
+            text="",
+            font=self.appearance_manager.get_font_title(),
+        )
+        self.status_label.place(x=50, y=100)
 
         painel_3 = ctk.CTkButton(
             self.main_content,
@@ -108,17 +121,18 @@ class Automation:
             hover_color="#033B21",
             anchor="center",
             command=self.save_database,
+            state="disabled",
         )
         self.bt_download.place(x=10, y=50)
 
     def search_database_dialog(self):
-
         db_path = ctk.filedialog.askopenfilename(
             defaultextension=".xlsx", filetypes=[("Excel Files", "*.xlsx")]
         )
 
         if db_path:
             self.text_local_database.configure(text=db_path)
+            self.db_path = db_path
 
     def save_database(self):
         # Abrir o diálogo para escolher o local e o nome do arquivo
@@ -128,9 +142,34 @@ class Automation:
         )
         if file_path:
             self.dataframe.to_excel(file_path, index=False)
-            print(f"Arquivo salvo em: {file_path}")
+            self.status_label.configure(text=f"Arquivo salvo em: {file_path}")
         else:
-            print("Operação de salvamento cancelada")
+            self.status_label.configure(text="Operação de salvamento cancelada")
+
+    def start_thread(self):
+        thread = Thread(target=self.start)
+        thread.start()
 
     def start(self):
-        print("INICIANDO AUTOMAÇÃO")
+        self.status_label.configure(text="INICIANDO AUTOMAÇÃO")
+        db_path = getattr(self, "db_path", None)
+        if not db_path:
+            self.status_label.configure(
+                text="Caminho do banco de dados não especificado"
+            )
+            return
+
+        # Carregando o DataFrame
+        self.dataframe = pd.read_excel(db_path)
+        self.status_label.configure(text="DataFrame carregado")
+
+        # Simulação de modificações no DataFrame
+        steps = 5  # Número de passos na modificação do DataFrame
+        for step in range(steps):
+            time.sleep(1)  # Simula uma operação demorada
+            self.dataframe[f"Nova_Coluna_{step}"] = range(len(self.dataframe))
+            self.progress_bar.set((step + 1) / steps)
+
+        self.status_label.configure(text="AUTOMAÇÃO FINALIZADA")
+        self.bt_download.configure(state="normal")
+        self.status_label.configure(text="Você pode salvar o arquivo agora.")
