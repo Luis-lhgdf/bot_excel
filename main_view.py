@@ -183,9 +183,7 @@ class MainView(ctk.CTk):
             self.interface_automation = Automation(self)
         except Exception as erro:
             print(f"houve um erro de: {erro}")
-            
         
-
     def exit(self):
         resp = self.msgbox("SAIR", "Deseja realmente encerrar o sistema?", 4)
         if resp == 6:
