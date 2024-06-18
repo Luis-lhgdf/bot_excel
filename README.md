@@ -25,7 +25,7 @@ Este projeto é um exemplo de um sistema de automação desenvolvido em Python u
 
 - Execute o arquivo main.py para iniciar a aplicação.
 
-- Interface do Aplicativo:
+## Interface do Aplicativo:
 
 Upload/Iniciar: Clique para carregar o arquivo Excel e iniciar o processamento.
 Procurar: Selecione o arquivo Excel (.xlsx) desejado.
